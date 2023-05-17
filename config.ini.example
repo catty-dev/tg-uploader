@@ -1,0 +1,7 @@
+[TELEGRAM]
+API_ID = 123456789
+API_HASH = xxxxxxxxxxxxxxxxxxxxxxxxx
+BOT_TOKEN = 00000000000:XXXXXXXXXXXXXXXXXXXXXX
+
+[UPLOAD]
+URL = https://some.website.com/api/upload
