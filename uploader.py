@@ -133,33 +133,43 @@ async def handle_document(app, message):
         file_object = message.audio
     elif message.document is not None:
         file_object = message.document
-        ext=os.path.splitext(file_object.file_name)
-        if not ext[-1] in supported_types:
-            return await message.reply('you cant upload this file type')
     else: return await message.reply('you cant upload this file type')
 
     if file_object.file_size > 3e+7:
         return await message.reply('file too large')
+    
+    if file_object.file_name is not None:
+        ext=os.path.splitext(file_object.file_name)
+        if not ext[-1] in supported_types:
+            return await message.reply('you cant upload this file type')
+
+    msg = await message.reply(f"downloading your media...")
+
+    async def progress(current, total):
+        await msg.edit_text(f"downloading your media: {current * 100 / total:.1f}%")
 
     try:
-        local_file_path = await app.download_media(message)
-        await post_it(local_file_path, message, id, token)
-    except Exception as e: await message.reply("ERROR: " + str(e))
+        local_file_path = await app.download_media(message, progress=progress)
+        await post_it(local_file_path, id, token, msg)
+    except Exception as e: await msg.edit_text("ERROR: " + str(e))
     os.remove(local_file_path)
 
 # deliver your shitpost
-async def post_it(local_file_path, message, id, token):
+async def post_it(local_file_path, id, token, msg):
     url = upload_url
     data={"id": id, "token": token}
+
+    await msg.edit_text(f"uploading to website...")
 
     with open(local_file_path, 'rb') as fobj:
         response = requests.post(url, data=data, files={'imageupload': fobj})
 
     status = response.json()['status']
     if not status == 'upload created':
-        return await message.reply("ERROR: " + status)
+        return await msg.edit_text("ERROR while uploading: " + status)
 
     url = response.json()['url']
-    await message.reply(f"{status} \n{url}")
+    await msg.edit_text(f"{status} \n{url}")
+
 
 app.run()
