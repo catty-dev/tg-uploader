@@ -137,8 +137,8 @@ async def handle_document(app, message):
 
     if file_object.file_size > 3e+7:
         return await message.reply('file too large')
-    
-    if file_object.file_name is not None:
+
+    if (message.video or message.document) and file_object.file_name is not None:
         ext=os.path.splitext(file_object.file_name)
         if not ext[-1] in supported_types:
             return await message.reply('you cant upload this file type')
