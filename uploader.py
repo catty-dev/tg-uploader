@@ -5,6 +5,8 @@ import os
 from configparser import ConfigParser
 import sqlite3
 from datetime import datetime
+import random
+
 
 config = ConfigParser()
 config.read('config.ini')
@@ -123,27 +125,30 @@ async def handle_document(app, message):
         id = keys[-2]
         token = keys[-1]
 
+    randomnum = str(random.randint(10000000000, 99999999999))
 
     # Get the File object from the message
     if message.photo is not None:
         file_object = message.photo
-        file_name = now + ".jpg"
+        file_name = now + randomnum + ".jpg"
     elif message.video is not None:
         file_object = message.video
-        file_name = now + ".mp4"
+        file_name = now + randomnum + ".mp4"
     elif message.animation is not None:
         file_object = message.animation
-        file_name = now + ".mp4"
+        file_name = now + randomnum + ".mp4"
     elif message.sticker is not None:
         file_object = message.sticker
+        file_name = now + randomnum + ".webp"
     elif message.audio is not None:
         file_object = message.audio
+        file_name = now + randomnum + ".mp3"
     elif message.document is not None:
         file_object = message.document
         ext=os.path.splitext(file_object.file_name)
         if not ext[-1] in supported_types:
             return await message.reply('you cant upload this file type')
-        file_name = now + "." + file_object.file_name
+        file_name = now + randomnum + "." + file_object.file_name
     else: return await message.reply('you cant upload this file type')
 
     if file_object.file_size > 3e+7:
@@ -153,7 +158,6 @@ async def handle_document(app, message):
 
     async def progress(current, total):
         await msg.edit_text(f"downloading your media: {current * 100 / total:.1f}%")
-
 
     try:
         local_file_path = await app.download_media(message, file_name=file_name, progress=progress)
