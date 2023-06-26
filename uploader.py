@@ -20,8 +20,6 @@ con = sqlite3.connect("users.db")
 cur = con.cursor()
 cur.execute("create table if not exists users (userid BIGINT NOT NULL PRIMARY KEY, name TEXT, id INT NOT NULL, token TEXT NOT NULL)")
 
-now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
-
 app = Client(
     "my_bot",
     api_id=api_id, api_hash=api_hash,
@@ -125,7 +123,8 @@ async def handle_document(app, message):
         id = keys[-2]
         token = keys[-1]
 
-    randomnum = str(random.randint(10000000000, 99999999999))
+    randomnum = str(random.randint(10000, 99999))
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
 
     # Get the File object from the message
     if message.photo is not None:
