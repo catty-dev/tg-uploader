@@ -138,7 +138,11 @@ async def handle_document(app, message):
         file_name = now + randomnum + ".mp4"
     elif message.sticker is not None:
         file_object = message.sticker
-        file_name = now + randomnum + ".webp"
+        if file_object.mime_type == "video/webm":
+            file_name = now + randomnum + ".webm"
+        elif file_object.mime_type == "image/webp":
+            file_name = now + randomnum + ".webp"
+        else: return await message.reply('you cant upload this file type')
     elif message.audio is not None:
         file_object = message.audio
         file_name = now + randomnum + ".mp3"
@@ -150,7 +154,7 @@ async def handle_document(app, message):
         file_name = now + randomnum + "." + file_object.file_name
     else: return await message.reply('you cant upload this file type')
 
-    if file_object.file_size > 3e+7:
+    if file_object.file_size > 31457280:
         return await message.reply('file too large')
 
     msg = await message.reply(f"downloading your media...")
@@ -160,12 +164,12 @@ async def handle_document(app, message):
 
     try:
         local_file_path = await app.download_media(message, file_name=file_name, progress=progress)
-        await post_it(local_file_path, id, token, msg)
-    except Exception as e: await msg.edit_text("ERROR: " + str(e))
+        await post_it(local_file_path, id, token, msg, file_name)
+    except Exception as e: await msg.edit_text("ERROR while processing " + file_name + "\n" + str(e))
     os.remove(local_file_path)
 
 # deliver your shitpost
-async def post_it(local_file_path, id, token, msg):
+async def post_it(local_file_path, id, token, msg, file_name):
     url = upload_url
     data={"id": id, "token": token}
 
@@ -174,7 +178,9 @@ async def post_it(local_file_path, id, token, msg):
     with open(local_file_path, 'rb') as fobj:
         response = requests.post(url, data=data, files={'imageupload': fobj})
 
-    status = response.json()['status']
+    try: status = response.json()['status']
+    except: return await msg.edit_text("ERROR no response from the server\n[" + file_name + "]")
+
     if not status == 'upload created':
         return await msg.edit_text("ERROR while uploading: " + status)
 
